@@ -1,0 +1,89 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unity.Mathematics;
+using UnityEngine;
+
+using UnityEngine.UIElements;
+using UnityEngine.XR.WSA.Input;
+
+public class enemybullet : MonoBehaviour
+{
+    int i;
+    public Transform [] enemybullets;
+    public GameObject coinprebes;
+    public GameObject enemyfirebullet;
+    public GameObject enemyExplosionprebes;
+    public GameObject damageshooter;
+    public float speed = 1f;
+    public float  enemyspawnfirebullet=0;
+    public healthbar Healthbar;
+    public float health = 10f;
+    float barsize = 1f;
+    float damage = 0;
+    public AudioClip bulletsound;
+    public AudioClip damagesound;
+    public AudioClip explosionsound;
+    public AudioSource audiosource;
+    // Start is called before the first frame update
+    void Start()
+    {
+        damage = barsize / health;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+       transform.Translate(Vector2.down * speed * Time.deltaTime);
+    }
+   
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+       if (collision.tag=="Playerbullet")
+        {
+            audiosource.PlayOneShot(damagesound);
+            healthbarsize();
+            Destroy(collision.gameObject);
+          GameObject damagevfx=  Instantiate(damageshooter, collision.transform.position, Quaternion.identity);
+            Destroy(damagevfx, 0.05f);
+            if (health <= 0)
+            {
+                AudioSource.PlayClipAtPoint(explosionsound, Camera.main.transform.position, 0.5f);
+                Instantiate(coinprebes,transform.position, Quaternion.identity);
+                Destroy(gameObject);
+             GameObject enemyexplosion = Instantiate(enemyExplosionprebes, transform.position , Quaternion.identity);
+               Destroy(enemyexplosion, 0.04f);
+            }
+           
+
+        }
+       
+
+    }
+    public void healthbarsize()
+    {
+        health -= 1;
+        barsize = barsize - damage;
+        Healthbar.setsize(barsize);
+    }
+    void enemyfire()
+    {
+        for ( i = 0; i <enemybullets.Length ; i++)
+        {
+            Instantiate(enemyfirebullet, enemybullets[i].position, Quaternion.identity);
+        }
+      
+      // Instantiate(enemyfirebullet, enemybullet1.position, Quaternion.identity);
+      //  Instantiate(enemyfirebullet, enmeybullet2.position, Quaternion.identity);
+    }
+    IEnumerator enemyshoot()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(enemyspawnfirebullet);
+            enemyfire();
+            audiosource.PlayOneShot(bulletsound, 0.5f);
+        }
+
+    }
+}
